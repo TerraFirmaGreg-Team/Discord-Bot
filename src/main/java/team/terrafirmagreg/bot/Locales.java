@@ -37,10 +37,6 @@ public class Locales {
             "zh_tw", "繁體中文 (zh_tw)"
     );
 
-    public static List<Command.Choice> getLanguageChoices() {
-        return LANGS.stream()
-                .map(l -> new Command.Choice(LANG_LABELS.getOrDefault(l, l), l))
-                .collect(Collectors.toList());
-    }
+
 }
 

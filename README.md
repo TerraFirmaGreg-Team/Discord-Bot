@@ -5,21 +5,23 @@ Discord bot for accessing the TerraFirmaGreg Field Guide with multi-language sup
 ## Features
 
 - **Field Guide Integration** - Browse TerraFirmaGreg Field Guide pages directly in Discord
-- **Multi-language Support** - Available in 9 languages (English, Japanese, Korean, Portuguese, Russian, Ukrainian, Simplified/Traditional Chinese)
+- **Multi-language Support** - Available in 9 languages (English, Japanese, Korean, Portuguese, Russian, Ukrainian,
+  Simplified/Traditional Chinese)
 - **Interactive Search** - Fast search with pagination and result selection
 - **Rich Embeds** - Beautifully formatted guide content with share buttons
 - **Rate Limiting** - Built-in protection against spam
 
 ## Commands
 
-| Command | Description |
-|---------|-------------|
-| `/guide top` | Quick access to most useful guide entries |
-| `/guide search <query>` | Search guide by keywords |
-| `/guide path <path>` | Fetch specific page by URL path |
-| `/guide scare` | New player introduction with field guide info |
+| Command                 | Description                                   |
+|-------------------------|-----------------------------------------------|
+| `/guide top`            | Quick access to most useful guide entries     |
+| `/guide search <query>` | Search guide by keywords                      |
+| `/guide path <path>`    | Fetch specific page by URL path               |
+| `/guide scare`          | New player introduction with field guide info |
 
 All commands support optional `language` parameter for localization.
+
 - English (en_us) - default
 - 日本語 (ja_jp)
 - 한국어 (ko_kr)
@@ -33,19 +35,22 @@ All commands support optional `language` parameter for localization.
 ## Quick Start
 
 ### Prerequisites
+
 - Java 17+
 - Discord Bot Token
 
 ### Setup
 
 1. **Clone the repository**
+
 ```bash
 git clone https://github.com/TerraFirmaGreg-Team/Discord-Bot.git
 cd Discord-Bot
 ```
 
 2. **Configure environment**
-Create `.env` file:
+   Create `.env` file:
+
 ```env
 DISCORD_TOKEN=your_bot_token
 DISCORD_CLIENT_ID=your_client_id
@@ -54,12 +59,10 @@ RATE_LIMIT_MS=3000  # Optional rate limit
 ```
 
 3. **Build and run**
+
 ```bash
 # Build
 ./gradlew.bat clean build
-
-# Register slash commands (run once)
-java -cp "build\libs\*" team.terrafirmagreg.bot.RegisterCommands
 
 # Start bot
 ./gradlew.bat run
