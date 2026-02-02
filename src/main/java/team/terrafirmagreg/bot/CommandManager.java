@@ -73,8 +73,9 @@ public class CommandManager extends ListenerAdapter {
             ISlashCommand command = commands.get(event.getName());
             if (command != null) {
                 command.onSlashCommandInteraction(event);
+            } else {
+                event.reply("The command was not found!").setEphemeral(true).queue();
             }
-            event.reply("The command was not found!").setEphemeral(true).queue();
 
         } catch (Exception e) {
             if (Constant.DEV_MODE)
@@ -90,12 +91,13 @@ public class CommandManager extends ListenerAdapter {
     public void onStringSelectInteraction(@NotNull StringSelectInteractionEvent event) {
         try {
             String componentId = event.getComponentId();
-
-            ISlashCommand command = commands.get(componentId.split(":")[0]);
+            String commandName = componentId.split(":")[0];
+            ISlashCommand command = commands.get(commandName);
             if (command != null) {
                 command.onStringSelectInteraction(event);
+            } else {
+                LOGGER.warn("Unknown select interaction: {}", componentId);
             }
-            LOGGER.warn("Unknown select interaction: {}", componentId);
 
         } catch (Exception e) {
             if (Constant.DEV_MODE)
@@ -107,12 +109,13 @@ public class CommandManager extends ListenerAdapter {
     public void onButtonInteraction(@NotNull ButtonInteractionEvent event) {
         try {
             String componentId = event.getComponentId();
-
-            ISlashCommand command = commands.get(componentId.split(":")[0]);
+            String commandName = componentId.split(":")[0];
+            ISlashCommand command = commands.get(commandName);
             if (command != null) {
                 command.onButtonInteraction(event);
+            } else {
+                LOGGER.warn("Unknown button interaction: {}", componentId);
             }
-            LOGGER.warn("");
         } catch (Exception e) {
             if (Constant.DEV_MODE)
                 LOGGER.error("button handler error:", e);
