@@ -20,11 +20,11 @@ import java.util.Map;
 import static team.terrafirmagreg.bot.Main.LOGGER;
 
 @Getter
-public class CommandManager extends ListenerAdapter {
+public class DiscordCommandManager extends ListenerAdapter {
 
     private final Map<String, ISlashCommand> commands = new HashMap<>();
 
-    public CommandManager() {
+    public DiscordCommandManager() {
 
         if (Constant.DEV_MODE) {
             registerCommand(new PingCommand());

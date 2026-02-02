@@ -12,21 +12,23 @@ import team.terrafirmagreg.bot.config.BotConfig;
 public class Main {
 
     public static final Logger LOGGER = LoggerFactory.getLogger("[Bot]");
+    private static JDA jda;
+    private static BotConfig config;
 
     public static void main(String[] args) {
-        BotConfig config = new BotConfig();
+        config = new BotConfig();
 
         if (!config.isValid()) {
             LOGGER.error("Missing DISCORD_CLIENT_ID or DISCORD_TOKEN in .env");
             System.exit(1);
         }
         config.logConfiguration();
-        CommandManager commandManager = new CommandManager();
+        DiscordCommandManager discordCommandManager = new DiscordCommandManager();
 
         try {
-            JDA jda = JDABuilder.createLight(config.getToken())
+            jda = JDABuilder.createLight(config.getToken())
                     .enableIntents(GatewayIntent.GUILD_MESSAGES)
-                    .addEventListeners(commandManager)
+                    .addEventListeners(discordCommandManager)
                     .build();
 
             jda.awaitReady();
@@ -41,7 +43,7 @@ public class Main {
                 commandsAction = jda.updateCommands();
             }
 
-            for (ISlashCommand cmd : commandManager.getCommands().values()) {
+            for (ISlashCommand cmd : discordCommandManager.getCommands().values()) {
                 commandsAction.addCommands(cmd.getCommandData());
             }
 
@@ -60,6 +62,10 @@ public class Main {
                         System.exit(1);
                     }
             );
+
+            // Initialize console command handler
+            ConsoleCommandManager consoleCommandManager = new ConsoleCommandManager(jda);
+            consoleCommandManager.start();
 
         } catch (Exception e) {
             LOGGER.error("Failed to start bot:", e);

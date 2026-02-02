@@ -48,10 +48,11 @@ application {
 shadowJar {
     archiveBaseName.set("${projectName}")
     archiveClassifier.set('')
-    archiveVersion.set("${projectVersion}")
+    archiveVersion.set('')
 
     manifest {
-        attributes 'Main-Class': 'team.terrafirmagreg.bot.Main'
+        attributes 'Main-Class': 'team.terrafirmagreg.bot',
+                  'Implementation-Version': "${projectVersion}"
     }
 }
 
