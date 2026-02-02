@@ -21,7 +21,6 @@ import java.text.Normalizer;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -63,7 +62,8 @@ public class Scraper {
      */
     private static boolean isBlacklistedFragment(String idOrUrl) {
         try {
-            if (idOrUrl == null || idOrUrl.isEmpty()) return false;
+            if (idOrUrl == null || idOrUrl.isEmpty())
+                return false;
             String candidate = idOrUrl.contains("#") ? idOrUrl.substring(idOrUrl.lastIndexOf('#') + 1) : idOrUrl;
             String lc = candidate.toLowerCase();
             return FRAGMENT_BLACKLIST_SUBSTRINGS.stream().anyMatch(lc::contains);
@@ -80,8 +80,10 @@ public class Scraper {
      * @return Truncated string with ellipsis.
      */
     private static String truncateWithEllipsis(String text, int limit) {
-        if (text == null) return text;
-        if (text.length() <= limit) return text;
+        if (text == null)
+            return text;
+        if (text.length() <= limit)
+            return text;
         String ellipsis = "...";
         int sliceLen = Math.max(0, limit - ellipsis.length());
         return text.substring(0, sliceLen) + ellipsis;
@@ -126,20 +128,24 @@ public class Scraper {
                     case "br" -> out.append("\n");
                     case "strong", "b" -> {
                         String inner = getInlineMarkdown(c, currentUrl);
-                        if (!inner.isEmpty()) out.append("**").append(inner).append("**");
+                        if (!inner.isEmpty())
+                            out.append("**").append(inner).append("**");
                     }
                     case "em", "i" -> {
                         String inner = getInlineMarkdown(c, currentUrl);
-                        if (!inner.isEmpty()) out.append("*").append(inner).append("*");
+                        if (!inner.isEmpty())
+                            out.append("*").append(inner).append("*");
                     }
                     case "code", "kbd" -> {
                         String inner = getInlineMarkdown(c, currentUrl).replace("`", "\u200B`");
-                        if (!inner.isEmpty()) out.append("`").append(inner).append("`");
+                        if (!inner.isEmpty())
+                            out.append("`").append(inner).append("`");
                     }
                     case "a" -> {
                         String href = c.attr("href");
                         String text = getInlineMarkdown(c, currentUrl);
-                        if (text.isEmpty()) text = href;
+                        if (text.isEmpty())
+                            text = href;
                         try {
                             String abs = "";
                             String baseForResolve = currentUrl != null ? currentUrl : BASE;
@@ -156,9 +162,11 @@ public class Scraper {
                                 }
                                 if (rootIdx != -1 && rootIdx + 1 < parts.length) {
                                     String maybe = parts[rootIdx + 1];
-                                    if (Locales.LANGS.contains(maybe)) langForLink = maybe;
+                                    if (Locales.LANGS.contains(maybe))
+                                        langForLink = maybe;
                                 }
-                            } catch (Exception ignored) {}
+                            } catch (Exception ignored) {
+                            }
 
                             if (href == null || href.isEmpty()) {
                                 abs = "";
@@ -191,9 +199,11 @@ public class Scraper {
      */
     private static boolean isBreadcrumb(Element el) {
         String tag = el.tagName().toLowerCase();
-        if ("nav".equals(tag)) return true;
+        if ("nav".equals(tag))
+            return true;
         String aria = el.attr("aria-label").toLowerCase();
-        if (aria.contains("breadcrumb")) return true;
+        if (aria.contains("breadcrumb"))
+            return true;
         String cls = el.attr("class").toLowerCase();
         return cls.contains("breadcrumb");
     }
@@ -216,11 +226,15 @@ public class Scraper {
      */
     private static boolean shouldIncludeNode(Element el) {
         String tag = el.tagName().toLowerCase();
-        if (tag.isEmpty()) return false;
-        if (isBreadcrumb(el)) return false;
+        if (tag.isEmpty())
+            return false;
+        if (isBreadcrumb(el))
+            return false;
         // Exclude crafting/utility UI blocks entirely
-        if (isWithin(el, ".crafting-recipe, .minecraft-text, .item-header, .glb-viewer, .glb-viewer-container")) return false;
-        if (tag.startsWith("h")) return false;
+        if (isWithin(el, ".crafting-recipe, .minecraft-text, .item-header, .glb-viewer, .glb-viewer-container"))
+            return false;
+        if (tag.startsWith("h"))
+            return false;
         return tag.equals("p") || tag.equals("ul") || tag.equals("ol");
     }
 
@@ -230,16 +244,24 @@ public class Scraper {
      */
     private static String nodeToText(Element el, String currentUrl) {
         String tag = el.tagName().toLowerCase();
-        if (isBreadcrumb(el)) return "";
+        if (isBreadcrumb(el))
+            return "";
         String cls = el.attr("class").toLowerCase();
-        if (cls.contains("crafting-recipe-item-count")) return "";
-        if (isWithin(el, ".crafting-recipe, .minecraft-text, .item-header, .glb-viewer, .glb-viewer-container")) return "";
-        if (tag.startsWith("h")) return "";
-        if (tag.equals("ul")) return getListText(el, false, currentUrl);
-        if (tag.equals("ol")) return getListText(el, true, currentUrl);
+        if (cls.contains("crafting-recipe-item-count"))
+            return "";
+        if (isWithin(el, ".crafting-recipe, .minecraft-text, .item-header, .glb-viewer, .glb-viewer-container"))
+            return "";
+        if (tag.startsWith("h"))
+            return "";
+        if (tag.equals("ul"))
+            return getListText(el, false, currentUrl);
+        if (tag.equals("ol"))
+            return getListText(el, true, currentUrl);
         String t = getInlineMarkdown(el, currentUrl).trim();
-        if (STAT_PREFIX_RE.matcher(t).find()) return "";
-        if (t.matches("^\\d+$")) return "";
+        if (STAT_PREFIX_RE.matcher(t).find())
+            return "";
+        if (t.matches("^\\d+$"))
+            return "";
         return t;
     }
 
@@ -247,7 +269,8 @@ public class Scraper {
      * Normalizes a string into lowercases and underscores.
      */
     private static String normalizeId(String str) {
-        if (str == null) return "";
+        if (str == null)
+            return "";
         String normalized = Normalizer.normalize(str, Normalizer.Form.NFKD);
         return normalized
                 .toLowerCase()
@@ -279,7 +302,8 @@ public class Scraper {
                 if (rootIdx + 1 < partsList.size()) {
                     String next = partsList.get(rootIdx + 1);
                     if (Locales.LANGS.contains(next)) {
-                        if (!next.equals(safe)) partsList.set(rootIdx + 1, safe);
+                        if (!next.equals(safe))
+                            partsList.set(rootIdx + 1, safe);
                     } else {
                         partsList.add(rootIdx + 1, safe);
                     }
@@ -339,11 +363,12 @@ public class Scraper {
                 }
                 if (rootIdx != -1 && rootIdx + 1 < parts.length) {
                     String maybe = parts[rootIdx + 1];
-                    if (Locales.LANGS.contains(maybe)) useLang = maybe;
+                    if (Locales.LANGS.contains(maybe))
+                        useLang = maybe;
                 }
                 String baseUrl = canonicalLangHtml(u.toString().split("#")[0], useLang);
                 String fragment = u.getRef();
-                return new String[]{baseUrl, fragment};
+                return new String[] { baseUrl, fragment };
             }
 
             String[] split = path.split("#", 2);
@@ -354,9 +379,9 @@ public class Scraper {
             String safeLang = Locales.LANGS.contains(lang) ? lang : Locales.DEFAULT_LANG;
             String langBase = BASE + safeLang + "/";
             String baseUrl = canonicalLangHtml(langBase + endsHtml, safeLang);
-            return new String[]{baseUrl, frag};
+            return new String[] { baseUrl, frag };
         } catch (Exception e) {
-            return new String[]{path, null};
+            return new String[] { path, null };
         }
     }
 
@@ -375,9 +400,11 @@ public class Scraper {
      * * Thank you Yan :3
      */
     private static String buildSearchIndexUrlForLang(String lang, String override) {
-        if (override != null && !override.isEmpty()) return override;
+        if (override != null && !override.isEmpty())
+            return override;
         String envOverride = System.getenv("SEARCH_INDEX_URL");
-        if (envOverride != null && !envOverride.isEmpty()) return envOverride;
+        if (envOverride != null && !envOverride.isEmpty())
+            return envOverride;
         String safeLang = Locales.LANGS.contains(lang) ? lang : Locales.DEFAULT_LANG;
         return BASE + safeLang + "/search_index.json";
     }
@@ -401,8 +428,10 @@ public class Scraper {
                 .build();
 
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-        List<SearchIndexEntry> data = gson.fromJson(response.body(), new TypeToken<List<SearchIndexEntry>>(){}.getType());
-        if (data == null) throw new RuntimeException("Invalid search_index.json format for " + lang);
+        List<SearchIndexEntry> data = gson.fromJson(response.body(), new TypeToken<List<SearchIndexEntry>>() {
+        }.getType());
+        if (data == null)
+            throw new RuntimeException("Invalid search_index.json format for " + lang);
         cachedIndexByLang.put(lang, new CachedIndex(data, now));
         return data;
     }
@@ -411,7 +440,8 @@ public class Scraper {
      * Sets a query string into lowercase terms.
      */
     private static List<String> tokenize(String q) {
-        if (q == null || q.isEmpty()) return Collections.emptyList();
+        if (q == null || q.isEmpty())
+            return Collections.emptyList();
         String processed = q.toLowerCase()
                 .replaceAll("[_#./-]+", " ")
                 .replaceAll("[^\\p{L}\\p{N}\\s]", "")
@@ -433,7 +463,8 @@ public class Scraper {
      * Word boundaries are defined by transitions.
      */
     private static boolean hasStandaloneTerm(String text, String term) {
-        if (text == null || term == null || text.isEmpty() || term.isEmpty()) return false;
+        if (text == null || term == null || text.isEmpty() || term.isEmpty())
+            return false;
         String esc = escapeForRegex(term);
         // regex moment.
         Pattern re = Pattern.compile("(?:^|[^\\p{L}\\p{N}])" + esc + "(?:[^\\p{L}\\p{N}]|$)", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CHARACTER_CLASS);
@@ -448,13 +479,16 @@ public class Scraper {
         String content = entry.content != null ? entry.content : "";
         int score = 0;
         for (String t : terms) {
-            if (hasStandaloneTerm(title, t)) score += 4;
-            if (hasStandaloneTerm(content, t)) score += 2;
+            if (hasStandaloneTerm(title, t))
+                score += 4;
+            if (hasStandaloneTerm(content, t))
+                score += 2;
         }
         for (String t : terms) {
             String esc = escapeForRegex(t);
             Pattern reStart = Pattern.compile("^(?:" + esc + ")(?:[^\\p{L}\\p{N}]|$)", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CHARACTER_CLASS);
-            if (reStart.matcher(title).find()) score += 1;
+            if (reStart.matcher(title).find())
+                score += 1;
         }
         return score;
     }
@@ -464,7 +498,8 @@ public class Scraper {
      */
     public static List<SearchResult> searchGuideViaIndex(String query, String selectedLang, String searchIndexUrl, int limit) {
         List<String> terms = tokenize(query);
-        if (terms.isEmpty()) return Collections.emptyList();
+        if (terms.isEmpty())
+            return Collections.emptyList();
 
         String effectiveLang = Locales.LANGS.contains(selectedLang) ? selectedLang : Locales.DEFAULT_LANG;
 
@@ -477,9 +512,9 @@ public class Scraper {
                 continue;
             }
             for (SearchIndexEntry e : idx) {
-                int s = scoreEntry(e, terms);
-                if (s > 0) {
-                    combined.add(new ScoredResult(s, e.entry != null ? e.entry : "Field Guide", buildUrlFromPath(e.url, lang), lang));
+                int scoredEntry = scoreEntry(e, terms);
+                if (scoredEntry > 0) {
+                    combined.add(new ScoredResult(scoredEntry, e.entry != null ? e.entry : "Field Guide", buildUrlFromPath(e.url, lang), lang));
                 }
             }
         }
@@ -491,13 +526,15 @@ public class Scraper {
         int cap = Math.max(1, Math.min(limit, 500));
 
         for (ScoredResult r : combined) {
-            if (!r.lang.equals(effectiveLang)) continue;
+            if (!r.lang.equals(effectiveLang))
+                continue;
             String abs = r.url;
             if (!seen.contains(abs)) {
                 seen.add(abs);
                 top.add(new SearchResult(r.title, abs));
             }
-            if (top.size() >= cap) break;
+            if (top.size() >= cap)
+                break;
         }
         return top;
     }
@@ -508,8 +545,10 @@ public class Scraper {
     public static List<SearchResult> searchGuideFast(String query, String selectedLang, int limit) {
         try {
             List<SearchResult> viaIndex = searchGuideViaIndex(query, selectedLang, null, limit);
-            if (!viaIndex.isEmpty()) return viaIndex;
-        } catch (Exception ignored) {}
+            if (!viaIndex.isEmpty())
+                return viaIndex;
+        } catch (Exception ignored) {
+        }
         return Collections.emptyList();
     }
 
@@ -533,10 +572,13 @@ public class Scraper {
     private static String extractFirstImage(Document doc, Element root) {
         Element scope = root != null ? root : doc.body();
         Element img = scope.selectFirst("img");
-        if (img == null) return null;
+        if (img == null)
+            return null;
         String src = img.attr("src");
-        if (src == null || src.isEmpty()) return null;
-        if (src.startsWith("http")) return src;
+        if (src == null || src.isEmpty())
+            return null;
+        if (src.startsWith("http"))
+            return src;
         try {
             return new URL(new URL(BASE), src).toString();
         } catch (Exception e) {
@@ -553,9 +595,11 @@ public class Scraper {
      */
     private static String extractTitle(Document doc) {
         Element h1 = doc.selectFirst("h1");
-        if (h1 != null && !h1.text().trim().isEmpty()) return h1.text().trim();
+        if (h1 != null && !h1.text().trim().isEmpty())
+            return h1.text().trim();
         Element h2 = doc.selectFirst("h2");
-        if (h2 != null && !h2.text().trim().isEmpty()) return h2.text().trim();
+        if (h2 != null && !h2.text().trim().isEmpty())
+            return h2.text().trim();
         String title = doc.title().trim();
         return !title.isEmpty() ? title : "Field Guide";
     }
@@ -600,13 +644,16 @@ public class Scraper {
         int currentLen = 0;
         int sepLen = 2;
 
-        for (Element el : scope.select("p, ul, ol")) {
-            String t = nodeToText(el, currentUrl);
-            if (t == null || t.isEmpty()) continue;
-            if (STAT_PREFIX_RE.matcher(t).find()) continue;
-            int addLen = (blocks.isEmpty() ? 0 : sepLen) + t.length();
-            if (currentLen + addLen > EMBED_DESC_LIMIT) break;
-            blocks.add(t);
+        for (Element element : scope.select("p, ul, ol")) {
+            String text = nodeToText(element, currentUrl);
+            if (text == null || text.isEmpty())
+                continue;
+            if (STAT_PREFIX_RE.matcher(text).find())
+                continue;
+            int addLen = (blocks.isEmpty() ? 0 : sepLen) + text.length();
+            if (currentLen + addLen > EMBED_DESC_LIMIT)
+                break;
+            blocks.add(text);
             currentLen += addLen;
         }
 
@@ -618,13 +665,16 @@ public class Scraper {
      * Extracts a section's text and image.
      */
     private static SectionData extractSection(Document doc, String fragmentId, String currentUrl) {
-        if (fragmentId == null || fragmentId.isEmpty()) return null;
-        if (isBlacklistedFragment(fragmentId)) return null;
+        if (fragmentId == null || fragmentId.isEmpty())
+            return null;
+        if (isBlacklistedFragment(fragmentId))
+            return null;
 
-        Element el = doc.getElementById(fragmentId);
-        if (el == null) return null;
+        Element element = doc.getElementById(fragmentId);
+        if (element == null)
+            return null;
 
-        String tag = el.tagName().toLowerCase();
+        String tag = element.tagName().toLowerCase();
         Integer level = null;
         if (tag.startsWith("h")) {
             try {
@@ -635,7 +685,7 @@ public class Scraper {
         }
 
         List<String> parts = new ArrayList<>();
-        Element cursor = el.nextElementSibling();
+        Element cursor = element.nextElementSibling();
         final Integer finalLevel = level;
 
         while (cursor != null) {
@@ -647,13 +697,16 @@ public class Scraper {
                 } catch (NumberFormatException e) {
                     lvl = 6;
                 }
-                if (finalLevel != null && lvl <= finalLevel) break;
+                if (finalLevel != null && lvl <= finalLevel)
+                    break;
             }
 
-            Element contentRoot = el.closest(".col-md-9");
+            Element contentRoot = element.closest(".col-md-9");
             Element cursorForCheck = cursor;
-            if (contentRoot != null && contentRoot.select("*").stream().noneMatch(e -> e.equals(cursorForCheck))) break;
-            if (isBreadcrumb(cursor)) break;
+            if (contentRoot != null && contentRoot.select("*").stream().noneMatch(e -> e.equals(cursorForCheck)))
+                break;
+            if (isBreadcrumb(cursor))
+                break;
 
             if (tagC.startsWith("h")) {
                 int lvl;
@@ -664,7 +717,8 @@ public class Scraper {
                 }
                 if (finalLevel == null || lvl > finalLevel) {
                     String text = cursor.text().trim();
-                    if (!text.isEmpty()) parts.add("**" + text + "**");
+                    if (!text.isEmpty())
+                        parts.add("**" + text + "**");
                 }
                 cursor = cursor.nextElementSibling();
                 continue;
@@ -676,14 +730,16 @@ public class Scraper {
             }
 
             String txt = nodeToText(cursor, currentUrl);
-            if (txt != null && !txt.isEmpty()) parts.add(txt);
+            if (txt != null && !txt.isEmpty())
+                parts.add(txt);
             cursor = cursor.nextElementSibling();
-            if (String.join("\n\n", parts).length() > EMBED_DESC_LIMIT) break;
+            if (String.join("\n\n", parts).length() > EMBED_DESC_LIMIT)
+                break;
         }
 
-        Element scope = el.parent();
+        Element scope = element.parent();
         String image = extractFirstImage(doc, scope);
-        String title = !el.text().trim().isEmpty() ? el.text().trim() : fragmentId;
+        String title = !element.text().trim().isEmpty() ? element.text().trim() : fragmentId;
         String normalizedTitle = normalizeId(title);
         String pageTitleNorm = normalizeId(extractTitle(doc));
 
@@ -692,10 +748,12 @@ public class Scraper {
 
         for (String block : parts) {
             String pt = block.trim();
-            if (pt.isEmpty()) continue;
+            if (pt.isEmpty())
+                continue;
             String norm = normalizeId(pt);
             // Drop exact duplicates of section or page title.
-            if (norm.equals(normalizedTitle) || norm.equals(pageTitleNorm)) continue;
+            if (norm.equals(normalizedTitle) || norm.equals(pageTitleNorm))
+                continue;
             // Drop near-duplicates.
             if (cleaned.isEmpty()) {
                 if ((norm.startsWith(normalizedTitle) && pt.length() <= title.length() + 15) ||
@@ -703,7 +761,8 @@ public class Scraper {
                     continue;
                 }
             }
-            if (seenNorms.contains(norm)) continue;
+            if (seenNorms.contains(norm))
+                continue;
             seenNorms.add(norm);
             cleaned.add(pt);
         }
@@ -719,12 +778,15 @@ public class Scraper {
         List<TocItem> items = new ArrayList<>();
         Elements headers = doc.select("h2[id], h3[id]");
 
-        for (Element el : headers) {
-            String id = el.attr("id");
-            String txt = el.text().trim();
-            if (id.isEmpty() || txt.isEmpty()) continue;
-            if (isBlacklistedFragment(id)) continue;
-            if (txt.equals(pageTitle)) continue;
+        for (Element element : headers) {
+            String id = element.attr("id");
+            String txt = element.text().trim();
+            if (id.isEmpty() || txt.isEmpty())
+                continue;
+            if (isBlacklistedFragment(id))
+                continue;
+            if (txt.equals(pageTitle))
+                continue;
             String url = baseUrl + "#" + id;
             items.add(new TocItem(txt, url));
         }
@@ -733,10 +795,12 @@ public class Scraper {
         List<TocItem> unique = new ArrayList<>();
         for (TocItem it : items) {
             String key = normalizeId(it.title) + "#" + it.url.substring(it.url.lastIndexOf('#') + 1);
-            if (seen.contains(key)) continue;
+            if (seen.contains(key))
+                continue;
             seen.add(key);
             unique.add(it);
-            if (unique.size() >= 60) break;
+            if (unique.size() >= 60)
+                break;
         }
         return unique;
     }
@@ -762,8 +826,10 @@ public class Scraper {
                         .setTitle(sect.title + " — " + title, baseUrl + "#" + fragment)
                         .setDescription(truncateWithEllipsis(sect.description != null && !sect.description.isEmpty() ? sect.description : "Open the page for details."))
                         .setColor(0x3AA3FF);
-                if (sect.image != null) embed.setThumbnail(sect.image);
-                else if (image != null) embed.setThumbnail(image);
+                if (sect.image != null)
+                    embed.setThumbnail(sect.image);
+                else if (image != null)
+                    embed.setThumbnail(image);
                 return embed.build();
             }
         }
@@ -781,15 +847,18 @@ public class Scraper {
         int used = 0;
         for (String line : tocLines) {
             int add = (pickedToc.isEmpty() ? 0 : 1) + line.length() + 1;
-            if (used + add > remaining) break;
+            if (used + add > remaining)
+                break;
             pickedToc.add(line);
             used += add;
         }
 
         List<String> parts = new ArrayList<>();
-        if (!baseText.isEmpty()) parts.add(baseText);
+        if (!baseText.isEmpty())
+            parts.add(baseText);
         if (!pickedToc.isEmpty()) {
-            if (!parts.isEmpty()) parts.add("");
+            if (!parts.isEmpty())
+                parts.add("");
             parts.addAll(pickedToc);
         }
         String combined = String.join("\n", parts).trim();
@@ -800,7 +869,8 @@ public class Scraper {
                 .setDescription(!withEllipsis.isEmpty() ? withEllipsis : "Open the page for details.")
                 .setColor(0x3AA3FF);
 
-        if (image != null) embed.setThumbnail(image);
+        if (image != null)
+            embed.setThumbnail(image);
         return embed.build();
     }
 
@@ -815,56 +885,22 @@ public class Scraper {
         }
     }
 
-    public static class SearchIndexEntry {
-        public String entry;
-        public String content;
-        public String url;
+    public record SearchIndexEntry(String entry, String content, String url) {
     }
 
-    public static class SearchResult {
-        public String title;
-        public String url;
-
-        public SearchResult(String title, String url) {
-            this.title = title;
-            this.url = url;
-        }
+    public record SearchResult(String title, String url) {
     }
 
-    private static class ScoredResult {
-        int score;
-        String title;
-        String url;
-        String lang;
-
-        ScoredResult(int score, String title, String url, String lang) {
-            this.score = score;
-            this.title = title;
-            this.url = url;
-            this.lang = lang;
-        }
+    public record ScoredResult(int score, String title, String url, String lang) {
     }
 
-    private static class SectionData {
-        String title;
-        String description;
-        String image;
-
-        SectionData(String title, String description, String image) {
-            this.title = title;
-            this.description = description;
-            this.image = image;
-        }
+    public record SectionData(String title, String description, String image) {
     }
 
-    private static class TocItem {
-        String title;
-        String url;
+    public record TocItem(String title, String url) {
+    }
 
-        TocItem(String title, String url) {
-            this.title = title;
-            this.url = url;
-        }
+    public record TopTarget(String emoji, String url) {
     }
 }
 // Thank you for listening to my TED talk.

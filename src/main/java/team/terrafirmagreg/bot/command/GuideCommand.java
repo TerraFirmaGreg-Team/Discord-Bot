@@ -168,32 +168,32 @@ public class GuideCommand implements ISlashCommand {
         event.reply("Choose a link…").setEphemeral(true).queue(hook -> {
             try {
                 String langBase = Scraper.BASE + selectedLang + "/";
-                List<TopTarget> targets = List.of(
-                        new TopTarget("📙", langBase),
-                        new TopTarget("🖥️", "https://guide.appliedenergistics.org/1.20.1/"),
-                        new TopTarget("⛏️", langBase + "tfg_ores.html"),
-                        new TopTarget("🌎", langBase + "the_world/geology.html"),
-                        new TopTarget("🐖", langBase + "mechanics/animal_husbandry.html"),
-                        new TopTarget("🌾", langBase + "mechanics/crops.html"),
-                        new TopTarget("🍕", langBase + "firmalife.html"),
-                        new TopTarget("🛣️", langBase + "roadsandroofs.html"),
-                        new TopTarget("⛵", langBase + "firmaciv.html"),
-                        new TopTarget("💡", langBase + "tfg_tips.html")
+                List<Scraper.TopTarget> targets = List.of(
+                        new Scraper.TopTarget("📙", langBase),
+                        new Scraper.TopTarget("🖥️", "https://guide.appliedenergistics.org/1.20.1/"),
+                        new Scraper.TopTarget("⛏️", langBase + "tfg_ores.html"),
+                        new Scraper.TopTarget("🌎", langBase + "the_world/geology.html"),
+                        new Scraper.TopTarget("🐖", langBase + "mechanics/animal_husbandry.html"),
+                        new Scraper.TopTarget("🌾", langBase + "mechanics/crops.html"),
+                        new Scraper.TopTarget("🍕", langBase + "firmalife.html"),
+                        new Scraper.TopTarget("🛣️", langBase + "roadsandroofs.html"),
+                        new Scraper.TopTarget("⛵", langBase + "firmaciv.html"),
+                        new Scraper.TopTarget("💡", langBase + "tfg_tips.html")
                 );
 
                 List<SelectOption> options = new ArrayList<>();
-                for (TopTarget t : targets) {
+                for (Scraper.TopTarget target : targets) {
                     try {
-                        Scraper.SearchResult result = Scraper.fetchPageTitle(t.url, selectedLang);
-                        String labelText = result.title != null ? t.emoji + " " + result.title : t.emoji + " " + result.url;
+                        Scraper.SearchResult result = Scraper.fetchPageTitle(target.url(), selectedLang);
+                        String labelText = result.title() != null ? target.emoji() + " " + result.title() : target.emoji() + " " + result.url();
                         if (labelText.length() > 100)
                             labelText = labelText.substring(0, 100);
-                        options.add(SelectOption.of(labelText, result.url));
+                        options.add(SelectOption.of(labelText, result.url()));
                     } catch (Exception e) {
-                        String labelText = t.emoji + " " + t.url;
+                        String labelText = target.emoji() + " " + target.url();
                         if (labelText.length() > 100)
                             labelText = labelText.substring(0, 100);
-                        options.add(SelectOption.of(labelText, t.url));
+                        options.add(SelectOption.of(labelText, target.url()));
                     }
                 }
 
@@ -418,20 +418,20 @@ public class GuideCommand implements ISlashCommand {
 
         MessageEmbed srcEmbed = embeds.get(0);
         MessageChannel channel = event.getChannel();
-        
+
         // Acknowledge interaction and delete ephemeral message
         event.deferReply().setEphemeral(true).queue(hook -> {
             // Send embed with user mention
             channel.sendMessageEmbeds(srcEmbed)
-                .setContent("Shared by " + event.getUser().getAsMention())
-                .queue(
-                    msg -> {
-                        // Delete the ephemeral message
-                        event.getMessage().delete().queue();
-                        hook.deleteOriginal().queue();
-                    },
-                    error -> hook.editOriginal("Failed to share embed.").queue()
-                );
+                    .setContent("Shared by " + event.getUser().getAsMention())
+                    .queue(
+                            msg -> {
+                                // Delete the ephemeral message
+                                event.getMessage().delete().queue();
+                                hook.deleteOriginal().queue();
+                            },
+                            error -> hook.editOriginal("Failed to share embed.").queue()
+                    );
         });
     }
 
@@ -480,8 +480,8 @@ public class GuideCommand implements ISlashCommand {
         List<Scraper.SearchResult> slice = results.subList(start, Math.min(start + 25, results.size()));
 
         return slice.stream()
-                .map(r -> {
-                    String rel = r.url.startsWith(Scraper.BASE) ? r.url.substring(Scraper.BASE.length()) : r.url;
+                .map(searchResult -> {
+                    String rel = searchResult.url().startsWith(Scraper.BASE) ? searchResult.url().substring(Scraper.BASE.length()) : searchResult.url();
                     if (rel.contains("#")) {
                         String frag = rel.substring(rel.lastIndexOf('#') + 1);
                         String lc = frag.toLowerCase();
@@ -490,7 +490,7 @@ public class GuideCommand implements ISlashCommand {
                     }
                     if (rel.length() > 100)
                         return null;
-                    String label = (r.title != null ? r.title : "Result");
+                    String label = (searchResult.title() != null ? searchResult.title() : "Result");
                     if (label.length() > 100)
                         label = label.substring(0, 100);
                     String desc = rel.length() > 100 ? rel.substring(0, 100) : rel;
@@ -541,6 +541,4 @@ public class GuideCommand implements ISlashCommand {
         }
     }
 
-    private record TopTarget(String emoji, String url) {
-    }
 }
