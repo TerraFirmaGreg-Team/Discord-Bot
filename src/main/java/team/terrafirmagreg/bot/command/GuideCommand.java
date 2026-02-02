@@ -25,6 +25,8 @@ import team.terrafirmagreg.bot.util.CommandUtils;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -296,8 +298,8 @@ public class GuideCommand implements ISlashCommand {
 
         String url = rel.startsWith("http") ? rel : Scraper.BASE + rel;
         String langPattern = String.join("|", Locales.LANGS);
-        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("Field-Guide(?:-Modern)?/(" + langPattern + ")/");
-        java.util.regex.Matcher matcher = pattern.matcher(url);
+        Pattern pattern = Pattern.compile("Field-Guide(?:-Modern)?/(" + langPattern + ")/");
+        Matcher matcher = pattern.matcher(url);
         String selectedLang = matcher.find() ? matcher.group(1) : Locales.DEFAULT_LANG;
 
         event.deferEdit().queue(hook -> {
@@ -335,8 +337,8 @@ public class GuideCommand implements ISlashCommand {
 
         try {
             String langPattern = String.join("|", Locales.LANGS);
-            java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("Field-Guide(?:-Modern)?/(" + langPattern + ")/");
-            java.util.regex.Matcher matcher = pattern.matcher(sel);
+            Pattern pattern = Pattern.compile("Field-Guide(?:-Modern)?/(" + langPattern + ")/");
+            Matcher matcher = pattern.matcher(sel);
             String selectedLang = matcher.find() ? matcher.group(1) : Locales.DEFAULT_LANG;
 
             event.deferEdit().queue(hook -> {
@@ -416,8 +418,21 @@ public class GuideCommand implements ISlashCommand {
 
         MessageEmbed srcEmbed = embeds.get(0);
         MessageChannel channel = event.getChannel();
-        channel.sendMessageEmbeds(srcEmbed).queue();
-        event.reply("Shared embed to channel.").setEphemeral(true).queue();
+        
+        // Acknowledge interaction and delete ephemeral message
+        event.deferReply().setEphemeral(true).queue(hook -> {
+            // Send embed with user mention
+            channel.sendMessageEmbeds(srcEmbed)
+                .setContent("Shared by " + event.getUser().getAsMention())
+                .queue(
+                    msg -> {
+                        // Delete the ephemeral message
+                        event.getMessage().delete().queue();
+                        hook.deleteOriginal().queue();
+                    },
+                    error -> hook.editOriginal("Failed to share embed.").queue()
+                );
+        });
     }
 
     private static void handleShareLinkButton(ButtonInteractionEvent event) {
