@@ -58,11 +58,12 @@ public class ConsoleCommandManager {
     }
 
     private void handleCommand(String input) {
-        LOGGER.info("Console command received: {}", input);
-
         String[] parts = input.split("\\s+", 2);
         String commandName = parts[0].toLowerCase();
         String[] args = parts.length > 1 ? new String[] { parts[1] } : new String[0];
+
+        // Log console command usage
+        LOGGER.info("[Console Command] {} | Args: {}", commandName, args.length > 0 ? args[0] : "");
 
         ConsoleCommand command = commands.get(commandName);
         if (command != null) {

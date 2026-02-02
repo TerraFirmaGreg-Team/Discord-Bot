@@ -1,6 +1,10 @@
 package team.terrafirmagreg.bot.command;
 
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.components.actionrow.ActionRow;
+import net.dv8tion.jda.api.components.buttons.Button;
+import net.dv8tion.jda.api.components.selections.SelectOption;
+import net.dv8tion.jda.api.components.selections.StringSelectMenu;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -12,10 +16,6 @@ import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
-import net.dv8tion.jda.api.components.actionrow.ActionRow;
-import net.dv8tion.jda.api.components.buttons.Button;
-import net.dv8tion.jda.api.components.selections.SelectOption;
-import net.dv8tion.jda.api.components.selections.StringSelectMenu;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import team.terrafirmagreg.bot.Locales;
@@ -122,6 +122,7 @@ public class GuideCommand implements ISlashCommand {
 
             switch (componentId) {
                 case "guide:share" -> handleShareButton(event);
+                case "guide:share-link" -> handleShareLinkButton(event);
                 default -> {
                     if (componentId.startsWith("guide:search-prev:") || componentId.startsWith("guide:search-next:")) {
                         handleSearchPaging(event);
@@ -144,8 +145,9 @@ public class GuideCommand implements ISlashCommand {
         event.reply("Working on it...").setEphemeral(true).queue(hook -> {
             try {
                 MessageEmbed embed = Scraper.fetchGuideEmbed(path, selectedLang);
-                Button shareBtn = Button.primary("guide:share", "Share link");
-                hook.editOriginalEmbeds(embed).setComponents(ActionRow.of(shareBtn)).queue();
+                Button shareBtn = Button.primary("guide:share", "Share Messages");
+                Button shareLinkBtn = Button.secondary("guide:share-link", "Share link");
+                hook.editOriginalEmbeds(embed).setComponents(ActionRow.of(shareBtn, shareLinkBtn)).queue();
             } catch (Exception e) {
                 logger.error("guide path error:", e);
                 try {
@@ -301,10 +303,11 @@ public class GuideCommand implements ISlashCommand {
         event.deferEdit().queue(hook -> {
             try {
                 MessageEmbed embed = Scraper.fetchGuideEmbed(url, selectedLang);
-                Button shareBtn = Button.primary("guide:share", "Share link");
+                Button shareBtn = Button.primary("guide:share", "Share Messages");
+                Button shareLinkBtn = Button.secondary("guide:share-link", "Share link");
                 hook.editOriginal("Result:")
                         .setEmbeds(embed)
-                        .setComponents(ActionRow.of(shareBtn))
+                        .setComponents(ActionRow.of(shareBtn, shareLinkBtn))
                         .queue();
             } catch (Exception e) {
                 logger.error("search-select fetch error:", e);
@@ -339,10 +342,11 @@ public class GuideCommand implements ISlashCommand {
             event.deferEdit().queue(hook -> {
                 try {
                     MessageEmbed embed = Scraper.fetchGuideEmbed(sel, selectedLang);
-                    Button shareBtn = Button.primary("guide:share", "Share link");
+                    Button shareBtn = Button.primary("guide:share", "Share Messages");
+                    Button shareLinkBtn = Button.secondary("guide:share-link", "Share link");
                     hook.editOriginal("Selected:")
                             .setEmbeds(embed)
-                            .setComponents(ActionRow.of(shareBtn))
+                            .setComponents(ActionRow.of(shareBtn, shareLinkBtn))
                             .queue();
                 } catch (Exception e) {
                     logger.error("top-select fetch error:", e);
@@ -413,6 +417,40 @@ public class GuideCommand implements ISlashCommand {
         MessageEmbed srcEmbed = embeds.get(0);
         MessageChannel channel = event.getChannel();
         channel.sendMessageEmbeds(srcEmbed).queue();
+        event.reply("Shared embed to channel.").setEphemeral(true).queue();
+    }
+
+    private static void handleShareLinkButton(ButtonInteractionEvent event) {
+        long rem = CommandUtils.checkAndTouch(event.getUser().getId(), "btn:" + event.getComponentId());
+        if (rem > 0) {
+            long wait = (rem + 999) / 1000;
+            event.reply("Please wait " + wait + "s before sharing again.").setEphemeral(true).queue();
+            return;
+        }
+
+        List<MessageEmbed> embeds = event.getMessage().getEmbeds();
+        if (embeds.isEmpty()) {
+            event.reply("No embed to share.").setEphemeral(true).queue();
+            return;
+        }
+
+        MessageEmbed srcEmbed = embeds.get(0);
+        String url = srcEmbed.getUrl();
+        if (url == null || url.isEmpty()) {
+            event.reply("No URL found in embed.").setEphemeral(true).queue();
+            return;
+        }
+
+        String title = srcEmbed.getTitle();
+        String linkText;
+        if (title != null && !title.isEmpty()) {
+            linkText = "[" + title + "](" + url + ")";
+        } else {
+            linkText = url;
+        }
+
+        MessageChannel channel = event.getChannel();
+        channel.sendMessage(linkText).queue();
         event.reply("Shared link to channel.").setEphemeral(true).queue();
     }
 

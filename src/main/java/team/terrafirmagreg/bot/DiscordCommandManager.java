@@ -2,6 +2,9 @@ package team.terrafirmagreg.bot;
 
 import lombok.Getter;
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
@@ -57,6 +60,9 @@ public class DiscordCommandManager extends ListenerAdapter {
     @Override
     public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
         try {
+            // Log command usage
+            logCommandUsage(event.getName(), event.getUser(), event.getChannel(), event.getGuild());
+
             if (Constant.DEV_MODE) {
                 // Log all interactions during testing.
                 LOGGER.info("Interaction received: command={} isChatInput=true", event.getName());
@@ -92,6 +98,10 @@ public class DiscordCommandManager extends ListenerAdapter {
         try {
             String componentId = event.getComponentId();
             String commandName = componentId.split(":")[0];
+
+            // Log component interaction
+            logComponentUsage("select", componentId, event.getUser(), event.getChannel(), event.getGuild());
+
             ISlashCommand command = commands.get(commandName);
             if (command != null) {
                 command.onStringSelectInteraction(event);
@@ -110,6 +120,10 @@ public class DiscordCommandManager extends ListenerAdapter {
         try {
             String componentId = event.getComponentId();
             String commandName = componentId.split(":")[0];
+
+            // Log component interaction
+            logComponentUsage("button", componentId, event.getUser(), event.getChannel(), event.getGuild());
+
             ISlashCommand command = commands.get(commandName);
             if (command != null) {
                 command.onButtonInteraction(event);
@@ -120,6 +134,27 @@ public class DiscordCommandManager extends ListenerAdapter {
             if (Constant.DEV_MODE)
                 LOGGER.error("button handler error:", e);
         }
+    }
+
+    /**
+     * Logs slash command usage with user, channel, and guild information
+     */
+    private void logCommandUsage(String commandName, User user, MessageChannel channel, Guild guild) {
+        String channelName = channel != null ? channel.getName() : "Unknown";
+        String guildName = guild != null ? guild.getName() : "DM";
+
+        LOGGER.info("[Command] /{} | User: {} | Channel: {} | Guild: {}", commandName, user.getAsTag(), channelName, guildName);
+    }
+
+    /**
+     * Logs component interaction (button/select) with user, channel, and guild information
+     */
+    private void logComponentUsage(String componentType, String componentId, User user, MessageChannel channel, Guild guild) {
+        String channelName = channel != null ? channel.getName() : "Unknown";
+        String guildName = guild != null ? guild.getName() : "DM";
+
+        LOGGER.info("[Component] {}:{} | User: {} | Channel: {} | Guild: {}",
+                componentType, componentId, user.getAsTag(), channelName, guildName);
     }
 
 }
