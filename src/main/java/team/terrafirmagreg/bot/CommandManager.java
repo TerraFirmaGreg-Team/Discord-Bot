@@ -26,7 +26,9 @@ public class CommandManager extends ListenerAdapter {
 
     public CommandManager() {
 
-        registerCommand(new PingCommand());
+        if (Constant.DEV_MODE) {
+            registerCommand(new PingCommand());
+        }
         registerCommand(new GuideCommand());
     }
 

@@ -7,6 +7,7 @@ plugins {
 group = "${projectGroup}"
 version = "${projectVersion}"
 
+
 java {
     sourceCompatibility = JavaVersion.toVersion("${javaVersion}")
     targetCompatibility = JavaVersion.toVersion("${javaVersion}")
@@ -23,16 +24,16 @@ repositories {
 dependencies {
     // JDA - Java Discord API
     implementation "net.dv8tion:JDA:${jdaVersion}"
-    
+
     // JSoup for HTML parsing
     implementation "org.jsoup:jsoup:${jsoupVersion}"
-    
+
     // JSON parsing
     implementation "com.google.code.gson:gson:${gsonVersion}"
-    
+
     // dotenv for environment variables
     implementation "io.github.cdimascio:dotenv-java:${dotenvVersion}"
-    
+
     // SLF4J for logging
     implementation "ch.qos.logback:logback-classic:${logbackVersion}"
 
@@ -45,17 +46,14 @@ application {
 }
 
 shadowJar {
-    archiveBaseName.set('terrafirmagreg-bot')
+    archiveBaseName.set("${projectName}")
     archiveClassifier.set('')
-    archiveVersion.set('')
-    
+    archiveVersion.set("${projectVersion}")
+
     manifest {
         attributes 'Main-Class': 'team.terrafirmagreg.bot.Main'
     }
 }
 
-jar {
-    manifest {
-        attributes 'Main-Class': 'team.terrafirmagreg.bot.Main'
-    }
-}
+// Отключаем обычный jar task
+jar.enabled = false

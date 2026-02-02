@@ -1,4 +1,4 @@
-# TerraFirmaGreg Discord Bot
+# TerraFirmaGreg Bot
 
 Discord bot for accessing the TerraFirmaGreg Field Guide with multi-language support and interactive search.
 
