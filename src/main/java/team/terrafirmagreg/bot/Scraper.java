@@ -119,31 +119,30 @@ public class Scraper {
     private static String getInlineMarkdown(Element el, String currentUrl) {
         StringBuilder out = new StringBuilder();
         for (Node child : el.childNodes()) {
-            if (child instanceof TextNode) {
-                out.append(((TextNode) child).text());
-            } else if (child instanceof Element) {
-                Element c = (Element) child;
-                String tag = c.tagName().toLowerCase();
+            if (child instanceof TextNode textNode) {
+                out.append(textNode.text());
+            } else if (child instanceof Element element) {
+                String tag = element.tagName().toLowerCase();
                 switch (tag) {
                     case "br" -> out.append("\n");
                     case "strong", "b" -> {
-                        String inner = getInlineMarkdown(c, currentUrl);
+                        String inner = getInlineMarkdown(element, currentUrl);
                         if (!inner.isEmpty())
                             out.append("**").append(inner).append("**");
                     }
                     case "em", "i" -> {
-                        String inner = getInlineMarkdown(c, currentUrl);
+                        String inner = getInlineMarkdown(element, currentUrl);
                         if (!inner.isEmpty())
                             out.append("*").append(inner).append("*");
                     }
                     case "code", "kbd" -> {
-                        String inner = getInlineMarkdown(c, currentUrl).replace("`", "\u200B`");
+                        String inner = getInlineMarkdown(element, currentUrl).replace("`", "\u200B`");
                         if (!inner.isEmpty())
                             out.append("`").append(inner).append("`");
                     }
                     case "a" -> {
-                        String href = c.attr("href");
-                        String text = getInlineMarkdown(c, currentUrl);
+                        String href = element.attr("href");
+                        String text = getInlineMarkdown(element, currentUrl);
                         if (text.isEmpty())
                             text = href;
                         try {
@@ -186,7 +185,7 @@ public class Scraper {
                             out.append(text);
                         }
                     }
-                    default -> out.append(getInlineMarkdown(c, currentUrl));
+                    default -> out.append(getInlineMarkdown(element, currentUrl));
                 }
             }
         }
