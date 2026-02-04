@@ -16,6 +16,7 @@ public class Main {
     private static BotConfig config;
 
     public static void main(String[] args) {
+        long startTime = System.currentTimeMillis();
         config = new BotConfig();
 
         if (!config.isValid()) {
@@ -55,6 +56,9 @@ public class Main {
                             LOGGER.info("[Commands] Global registration complete (may take a few minutes).");
                         }
                         LOGGER.info("Bot is ready!");
+
+                        double elapsedSeconds = (System.currentTimeMillis() - startTime) / 1000.0;
+                        System.out.printf("Done (%.1fs)! For help, type \"help\"\n", elapsedSeconds);
                     },
                     error -> {
                         LOGGER.error("[Commands] Registration failed:", error);
