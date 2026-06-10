@@ -1,7 +1,7 @@
 plugins {
     id 'java'
     id 'application'
-    id 'com.github.johnrengelman.shadow' version "${shadowPluginVersion}"
+    id 'com.gradleup.shadow' version "${shadowPluginVersion}"
 }
 
 group = "${projectGroup}"
@@ -42,7 +42,7 @@ dependencies {
 }
 
 application {
-    mainClass = 'team.terrafirmagreg.bot.Main'
+    mainClass = 'team.terrafirmagreg.bot.Bootstrap'
 }
 
 shadowJar {
@@ -51,8 +51,8 @@ shadowJar {
     archiveVersion.set('')
 
     manifest {
-        attributes 'Main-Class': 'team.terrafirmagreg.bot',
-                  'Implementation-Version': "${projectVersion}"
+        attributes 'Main-Class': 'team.terrafirmagreg.bot.Bootstrap',
+                'Implementation-Version': "${projectVersion}"
     }
 }
 
