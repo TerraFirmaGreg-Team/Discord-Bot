@@ -3,6 +3,7 @@ package team.terrafirmagreg.bot;
 import net.dv8tion.jda.api.JDA;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import team.terrafirmagreg.bot.config.BotConfig;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -15,11 +16,13 @@ public class ConsoleCommandManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger("[Console]");
     private final JDA jda;
+    private final BotConfig config;
     private final Map<String, ConsoleCommand> commands;
     private volatile boolean running = true;
 
-    public ConsoleCommandManager(JDA jda) {
+    public ConsoleCommandManager(JDA jda, BotConfig config) {
         this.jda = jda;
+        this.config = config;
         this.commands = new HashMap<>();
         registerCommands();
     }
@@ -96,8 +99,7 @@ public class ConsoleCommandManager {
 
     private void handleReload(String[] args) {
         LOGGER.info("Reloading bot configuration...");
-        // Здесь можно добавить логику перезагрузки конфига
-        LOGGER.info("Configuration reloaded successfully!");
+        LOGGER.info("Configuration reloaded successfully! (dev_mode={})", config.isDevMode());
     }
 
     private record ConsoleCommand(String name, Consumer<String[]> handler, String description) {

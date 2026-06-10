@@ -30,7 +30,10 @@ import java.util.stream.Collectors;
 public class Scraper {
 
     // const BASE = 'https://terrafirmacraft.github.io/Field-Guide/';
-    public static final String BASE = "https://terrafirmagreg-team.github.io/Field-Guide-Modern/";
+    public static String BASE = "https://terrafirmagreg-team.github.io/Field-Guide-Modern/";
+
+    private static int HTTP_TIMEOUT_SEC = 15;
+    private static String SEARCH_INDEX_OVERRIDE = "";
 
     private static final int EMBED_DESC_LIMIT = 4096;
     // Lines starting with these labels are considered metadata and excluded from embeds.
@@ -50,10 +53,22 @@ public class Scraper {
     private static final long INDEX_TTL_MS = 10 * 60 * 1000;
 
     private static final Map<String, CachedIndex> cachedIndexByLang = new ConcurrentHashMap<>();
-    private static final HttpClient httpClient = HttpClient.newBuilder()
-            .connectTimeout(Duration.ofSeconds(15))
+    private static HttpClient httpClient = HttpClient.newBuilder()
+            .connectTimeout(Duration.ofSeconds(HTTP_TIMEOUT_SEC))
             .build();
     private static final Gson gson = new Gson();
+
+    public static void init(String baseUrl, int httpTimeoutSec) {
+        BASE = baseUrl;
+        HTTP_TIMEOUT_SEC = httpTimeoutSec;
+        httpClient = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(HTTP_TIMEOUT_SEC))
+                .build();
+    }
+
+    public static void setSearchIndexOverride(String url) {
+        SEARCH_INDEX_OVERRIDE = url != null ? url : "";
+    }
 
     /**
      * Checks whether an id or URL contains any blacklisted substrings.
@@ -401,9 +416,8 @@ public class Scraper {
     private static String buildSearchIndexUrlForLang(String lang, String override) {
         if (override != null && !override.isEmpty())
             return override;
-        String envOverride = System.getenv("SEARCH_INDEX_URL");
-        if (envOverride != null && !envOverride.isEmpty())
-            return envOverride;
+        if (SEARCH_INDEX_OVERRIDE != null && !SEARCH_INDEX_OVERRIDE.isEmpty())
+            return SEARCH_INDEX_OVERRIDE;
         String safeLang = Locales.LANGS.contains(lang) ? lang : Locales.DEFAULT_LANG;
         return BASE + safeLang + "/search_index.json";
     }
@@ -422,7 +436,7 @@ public class Scraper {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url))
                 .header("Cache-Control", "no-cache")
-                .timeout(Duration.ofSeconds(15))
+                .timeout(Duration.ofSeconds(HTTP_TIMEOUT_SEC))
                 .GET()
                 .build();
 
@@ -557,7 +571,7 @@ public class Scraper {
     private static Document fetchHtml(String url) throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url))
-                .timeout(Duration.ofSeconds(15))
+                .timeout(Duration.ofSeconds(HTTP_TIMEOUT_SEC))
                 .GET()
                 .build();
 

@@ -14,8 +14,8 @@ import org.jetbrains.annotations.NotNull;
 import team.terrafirmagreg.bot.api.ISlashCommand;
 import team.terrafirmagreg.bot.command.GuideCommand;
 import team.terrafirmagreg.bot.command.PingCommand;
+import team.terrafirmagreg.bot.config.BotConfig;
 import team.terrafirmagreg.bot.util.CommandUtils;
-import team.terrafirmagreg.bot.util.Constant;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -26,10 +26,12 @@ import static team.terrafirmagreg.bot.Main.LOGGER;
 public class DiscordCommandManager extends ListenerAdapter {
 
     private final Map<String, ISlashCommand> commands = new HashMap<>();
+    private final BotConfig config;
 
-    public DiscordCommandManager() {
+    public DiscordCommandManager(BotConfig config) {
+        this.config = config;
 
-        if (Constant.DEV_MODE) {
+        if (config.isDevMode()) {
             registerCommand(new PingCommand());
         }
         registerCommand(new GuideCommand());
@@ -42,17 +44,13 @@ public class DiscordCommandManager extends ListenerAdapter {
 
     @Override
     public void onReady(@NotNull ReadyEvent event) {
-        if (Constant.DEV_MODE) {
+        if (config.isDevMode()) {
             // Log IDs during testing.
             JDA jda = event.getJDA();
             LOGGER.info("Logged in as {}", jda.getSelfUser().getName());
             LOGGER.info("Bot user id: {}", jda.getSelfUser().getId());
-            String envClientId = System.getenv("DISCORD_CLIENT_ID");
-            if (envClientId != null) {
-                LOGGER.info("Env client id: {}", envClientId);
-                if (!envClientId.equals(jda.getSelfUser().getId())) {
-                    LOGGER.warn("WARNING: DISCORD_CLIENT_ID mismatch.");
-                }
+            if (!config.getClientId().equals(jda.getSelfUser().getId())) {
+                LOGGER.warn("WARNING: client_id mismatch. Configured: {}, Actual: {}", config.getClientId(), jda.getSelfUser().getId());
             }
         }
     }
@@ -63,12 +61,12 @@ public class DiscordCommandManager extends ListenerAdapter {
             // Log command usage
             logCommandUsage(event.getName(), event.getUser(), event.getChannel(), event.getGuild());
 
-            if (Constant.DEV_MODE) {
+            if (config.isDevMode()) {
                 // Log all interactions during testing.
                 LOGGER.info("Interaction received: command={} isChatInput=true", event.getName());
             }
 
-            long rem = CommandUtils.checkAndTouch(event.getUser().getId(), "cmd:" + event.getName());
+            long rem = CommandUtils.checkAndTouch(event.getUser().getId(), "cmd:" + event.getName(), config.getRateLimitMs());
             if (rem > 0) {
                 long wait = (rem + 999) / 1000;
                 event.reply("Please wait " + wait + "s before using /" + event.getName() + " again.")
@@ -84,7 +82,7 @@ public class DiscordCommandManager extends ListenerAdapter {
             }
 
         } catch (Exception e) {
-            if (Constant.DEV_MODE)
+            if (config.isDevMode())
                 LOGGER.error("Top-level handler error:", e);
             try {
                 event.reply("Failed to fetch that page.").setEphemeral(true).queue();
@@ -110,7 +108,7 @@ public class DiscordCommandManager extends ListenerAdapter {
             }
 
         } catch (Exception e) {
-            if (Constant.DEV_MODE)
+            if (config.isDevMode())
                 LOGGER.error("select handler error:", e);
         }
     }
@@ -131,7 +129,7 @@ public class DiscordCommandManager extends ListenerAdapter {
                 LOGGER.warn("Unknown button interaction: {}", componentId);
             }
         } catch (Exception e) {
-            if (Constant.DEV_MODE)
+            if (config.isDevMode())
                 LOGGER.error("button handler error:", e);
         }
     }

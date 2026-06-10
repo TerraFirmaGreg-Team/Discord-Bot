@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import team.terrafirmagreg.bot.api.ISlashCommand;
 import team.terrafirmagreg.bot.config.BotConfig;
+import team.terrafirmagreg.bot.util.Constant;
 
 public class Main {
 
@@ -20,11 +21,14 @@ public class Main {
         config = new BotConfig();
 
         if (!config.isValid()) {
-            LOGGER.error("Missing DISCORD_CLIENT_ID or DISCORD_TOKEN in .env");
+            LOGGER.error("Missing discord.token or discord.client_id in config.toml");
             System.exit(1);
         }
         config.logConfiguration();
-        DiscordCommandManager discordCommandManager = new DiscordCommandManager();
+
+        Scraper.init(config.getGuide().getBaseUrl(), config.getGuide().getHttpTimeoutSec());
+        Scraper.setSearchIndexOverride(config.getGuide().getSearchIndexUrl());
+        DiscordCommandManager discordCommandManager = new DiscordCommandManager(config);
 
         try {
             jda = JDABuilder.createLight(config.getToken())
@@ -68,7 +72,7 @@ public class Main {
             );
 
             // Initialize console command handler
-            ConsoleCommandManager consoleCommandManager = new ConsoleCommandManager(jda);
+            ConsoleCommandManager consoleCommandManager = new ConsoleCommandManager(jda, config);
             consoleCommandManager.start();
 
         } catch (Exception e) {
